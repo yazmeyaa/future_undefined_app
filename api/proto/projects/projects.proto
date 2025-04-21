@@ -1,0 +1,75 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+option go_package = "./http_gateway/internal/clients/projects;grpcProjects";
+
+service ProjectsService {
+  rpc Create(CreateProjectRequest) returns (CreateProjectResponse) {}
+  rpc GetById(GetProjectByIdRequest) returns (GetProjectByIdResponse) {}
+  rpc GetList(GetProjectListRequest) returns (GetProjectListResponse) {}
+  rpc DeleteById(DeleteByIdRequest) returns (Empty){}
+  rpc Update(UpdateByIdRequest) returns (UpdateByIdResponse){}
+}
+
+message UpdateByIdRequest {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  optional string github_url = 4;
+  optional string project_url = 5;
+}
+
+message UpdateByIdResponse {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  optional string github_url = 4;
+  optional string project_url = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message Empty {}
+
+message DeleteByIdRequest {
+  int64 id = 1;
+}
+message CreateProjectRequest {
+  string title = 2;
+  string description = 3;
+  optional string github_url = 4;
+  optional string project_url = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+message CreateProjectResponse {
+  int64 id = 1;
+}
+
+message GetProjectByIdRequest {
+  int64 id = 1;
+}
+
+message GetProjectByIdResponse {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  optional string github_url = 4;
+  optional string project_url = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message GetProjectListRequest {
+  uint32 offset = 1;
+  uint32 limit = 2;
+}
+
+message GetProjectListResponse {
+  repeated Project items = 1;
+}
+
+message Project {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  optional string github_url = 4;
+  optional string project_url = 5;
+  google.protobuf.Timestamp created_at = 6;
+}

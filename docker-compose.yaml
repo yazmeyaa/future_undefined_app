@@ -1,0 +1,111 @@
+name: "future_undefined_app"
+services:
+  projects_cache:
+    image: redis:alpine
+    container_name: "projects_cache"
+    networks:
+      projects:
+
+  projects_db:
+    image: postgres:bullseye
+    restart: unless-stopped
+    container_name: "projects_db"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: ${PROJECTS_DB_PASSWORD}
+      POSTGRES_USER: ${PROJECTS_DB_USERNAME}
+      POSTGRES_DB: ${PROJECTS_DB_DATABASE}
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d ${POSTGRES_DATABASE}", "-U ${POSTGRES_USER}" ]
+      interval: 2s
+      timeout: 60s
+    volumes:
+      - projects_pg_data:/var/lib/postgresql/data
+    networks:
+      projects:
+
+  projects:
+    container_name: "projects"
+    platform: linux/amd64
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "projects_db"
+      DB_PORT: "5432"
+      DB_USER: ${PROJECTS_DB_USERNAME}
+      DB_PASSWORD: ${PROJECTS_DB_PASSWORD}
+      DB_DATABASE: ${PROJECTS_DB_DATABASE}
+    build:
+      context: .
+      dockerfile: projects/cmd/Dockerfile
+    networks:
+      projects:
+    depends_on:
+      projects_db:
+        condition: service_completed_successfully
+      projects_cache:
+        condition: service_started
+
+  task_list_db:
+    image: postgres:bullseye
+    restart: unless-stopped
+    container_name: "task_list_db"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${TASK_LIST_DB_USERNAME}
+      POSTGRES_PASSWORD: ${TASK_LIST_DB_PASSWORD}
+      POSTGRES_DB: ${TASK_LIST_DB_DATABASE}
+    volumes:
+      - task_list_pg_data:/var/lib/postgresql/data
+    networks:
+      task_list:
+    healthcheck:
+      interval: 3s
+      test: [ "CMD-SHELL", "pg_isready", "-d", "${TASK_LIST_DB_DATABASE}", "-U", "${POSTGRES_USER}" ]
+      timeout: 60s
+
+  task_list:
+    container_name: "task_list"
+    platform: linux/amd64
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "task_list_db"
+      DB_PORT: "5432"
+      DB_USER: ${TASK_LIST_DB_USERNAME}
+      DB_PASSWORD: ${TASK_LIST_DB_PASSWORD}
+      DB_NAME: ${TASK_LIST_DB_DATABASE}
+    build:
+      context: .
+      dockerfile: task_list/cmd/server/Dockerfile
+    depends_on:
+      task_list_db:
+        condition: service_completed_successfully
+    networks:
+      task_list:
+
+  http_gateway:
+    container_name: "http_gateway"
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: gateway/cmd/Dockerfile
+    networks:
+      projects:
+      task_list:
+    depends_on:
+      - projects
+      - task_list
+
+networks:
+  projects:
+    name: "projects_net"
+  task_list:
+    name: "task_list_net"
+
+volumes:
+  projects_pg_data:
+  task_list_pg_data:

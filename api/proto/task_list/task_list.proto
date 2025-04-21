@@ -1,0 +1,131 @@
+syntax="proto3";
+import "google/protobuf/timestamp.proto";
+
+service TaskListService {
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {}
+  rpc GetTaskByID(GetTaskByIDRequest) returns (GetTaskByIDResponse) {}
+  rpc GetListOfTasks(GetTaskListRequest) returns (GetTaskListResponse) {}
+  rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse) {}
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {}
+
+  rpc CreateTaskList(CreateTaskListRequest) returns (CreateTaskListResponse) {}
+  rpc GetTaskListsByUserID(GetTaskListsByUserIDRequest) returns (GetTaskListsByUserIDResponse) {}
+  rpc GetTaskListByID(GetTaskListByIDRequest) returns (GetTaskListByIDResponse) {}
+  rpc DeleteTaskList(DeleteTaskListRequest) returns (DeleteTaskListResponse) {}
+}
+
+enum TaskStatus {
+  CREATED = 0;
+  IN_PROGRESS = 1;
+  CANCELED = 2;
+  COMPLETED = 3;
+  FAILED = 4;
+}
+
+message CreateTaskRequest {
+  int32 user_id = 1;
+  int32 task_list_id = 2;
+  string title = 3;
+  optional string description = 4;
+  TaskStatus status = 5;
+}
+
+message CreateTaskResponse {
+  int32 id = 1;
+  int32 task_list_id = 2;
+  string title = 3;
+  optional string description = 4;
+  int32 user_id = 5;
+  TaskStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message Task {
+  int32 id = 1;
+  int32 task_list_id = 2;
+  string title = 3;
+  optional string description = 4;
+  int32 user_id = 5;
+  TaskStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message GetTaskByIDRequest {
+  int32 id = 1;
+}
+
+message GetTaskByIDResponse {
+  Task task = 1;
+}
+
+message GetTaskListRequest {
+  int32 task_list_id = 1;
+}
+
+message GetTaskListResponse {
+  repeated Task tasks = 1;
+}
+
+message UpdateTaskRequest {
+  int32 id = 1;
+  optional string title = 2;
+  optional string description = 3;
+  optional TaskStatus status = 4;
+}
+
+message UpdateTaskResponse {
+  Task task = 1;
+}
+
+message DeleteTaskRequest {
+  int32 id = 1;
+}
+
+message DeleteTaskResponse {
+  bool success = 1;
+}
+
+message CreateTaskListRequest {
+  int32 user_id = 1;
+  string name = 2;
+}
+
+message CreateTaskListResponse {
+  int32 id = 1;
+  int32 user_id = 2;
+  string name = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message GetTaskListsByUserIDRequest {
+  int32 user_id = 1;
+}
+
+message GetTaskListsByUserIDResponse {
+  repeated TaskList task_lists = 1;
+}
+
+message GetTaskListByIDRequest {
+  int32 id = 1;
+}
+
+message GetTaskListByIDResponse {
+  TaskList task_list = 1;
+}
+
+message DeleteTaskListRequest {
+  int32 id = 1;
+}
+
+message DeleteTaskListResponse {
+  bool success = 1;
+}
+
+message TaskList {
+  int32 id = 1;
+  int32 user_id = 2;
+  string name = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message Nothing {}

@@ -1,0 +1,60 @@
+openapi: 3.0.0
+info:
+  title: future_undefined_app
+  version: 1.0.0
+servers:
+  - url: 'https://api.magic-lizard.ru'
+paths:
+  /projects:
+    get:
+      description: "Get list of objects"
+      tags:
+        - Projects
+      parameters:
+        - name: itemsPerPage
+          in: query
+          schema:
+            type: integer
+            nullable: true
+            default: 10
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+            nullable: true
+      responses:
+        200:
+          $ref: "#/components/responses/ListOfProjectsResponse"
+
+tags:
+  - name: Projects
+
+components:
+  responses:
+    ListOfProjectsResponse:
+      description: "List of projects"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Project"
+
+
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        githubUrl:
+          type: string
+          nullable: true
+        projectUrl:
+          type: string
+          nullable: true
