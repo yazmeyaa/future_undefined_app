@@ -1,4 +1,4 @@
-CREATE TABLE projects
+CREATE TABLE project
 (
     id          BIGSERIAL PRIMARY KEY,
     title       TEXT NOT NULL,

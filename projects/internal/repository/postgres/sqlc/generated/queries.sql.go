@@ -12,7 +12,7 @@ import (
 )
 
 const createProject = `-- name: CreateProject :one
-INSERT INTO projects (title, description, github_url, project_url)
+INSERT INTO project (title, description, github_url, project_url)
 VALUES ($1, $2, $3, $4) RETURNING id
 `
 
@@ -37,7 +37,7 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (i
 
 const deleteProject = `-- name: DeleteProject :exec
 DELETE
-FROM projects
+FROM project
 WHERE id = $1
 `
 
@@ -48,7 +48,7 @@ func (q *Queries) DeleteProject(ctx context.Context, id int64) error {
 
 const getProject = `-- name: GetProject :one
 SELECT id, title, description, github_url, project_url, created_at
-FROM projects
+FROM project
 WHERE id = $1 LIMIT 1
 `
 
@@ -68,7 +68,7 @@ func (q *Queries) GetProject(ctx context.Context, id int64) (Project, error) {
 
 const listProjects = `-- name: ListProjects :many
 SELECT id, title, description, github_url, project_url, created_at
-FROM projects LIMIT $1
+FROM project LIMIT $1
 OFFSET $2
 `
 
@@ -105,7 +105,7 @@ func (q *Queries) ListProjects(ctx context.Context, arg ListProjectsParams) ([]P
 }
 
 const updateProject = `-- name: UpdateProject :exec
-UPDATE projects
+UPDATE project
 SET title = $1,
     description = $2,
     github_url = $3,

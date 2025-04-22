@@ -1,21 +1,12 @@
-FROM golang:1.24-alpine3.21
-
-RUN mkdir -p /app
+FROM golang:1.24-alpine3.21 AS builder
 WORKDIR /app
-ENV GOPATH /app
 
-COPY go.work go.work.sum ./
-COPY api/go.mod api/go.sum ./api/
-COPY pkg/go.mod pkg/go.sum ./pkg/
-COPY gateway/go.mod gateway/go.sum ./gateway/
-COPY projects/go.mod projects/go.sum ./projects/
-COPY task_list/go.mod task_list/go.sum ./task_list/
-
+COPY . .
 RUN go mod download
-
-COPY projects/ ./projects
-COPY api/ ./api
-COPY pkg/ ./pkg
-
 RUN GOOS=linux GOARCH=arm64 go build -o /app/server ./projects/cmd;
+
+FROM golang:1.24-alpine3.21 as runner
+WORKDIR /app
+
+COPY --from=builder /app/server /app/server
 ENTRYPOINT ["/app/server"]

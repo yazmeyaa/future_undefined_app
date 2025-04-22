@@ -39,7 +39,7 @@ services:
       DB_PORT: "5432"
       DB_USER: ${PROJECTS_DB_USERNAME}
       DB_PASSWORD: ${PROJECTS_DB_PASSWORD}
-      DB_DATABASE: ${PROJECTS_DB_DATABASE}
+      DB_NAME: ${PROJECTS_DB_DATABASE}
     build:
       context: .
       dockerfile: projects/cmd/Dockerfile
