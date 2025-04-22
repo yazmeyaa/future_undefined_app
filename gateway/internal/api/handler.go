@@ -20,11 +20,11 @@ func (h Handler) GetProjects(w http.ResponseWriter, r *http.Request, params api.
 	if err != nil {
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 

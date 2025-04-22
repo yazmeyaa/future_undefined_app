@@ -61,7 +61,7 @@ func main() {
 
 	sqlcdb := sqlcproj.New(db)
 	repo := postgres.NewRepository(sqlcdb)
-	svc := service.NewProjectsService(repo)
+	svc := service.NewProjectsService(repo, svcLogger)
 	srv := grpc.NewServer()
 	handler := projectsGRPCHandler.NewGRPCHandler(svc)
 	grpcProjects.RegisterProjectsServiceServer(srv, handler)

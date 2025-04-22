@@ -54,8 +54,15 @@ func main() {
 	q := sqlctasklist.New(conn)
 
 	repo := postgres.NewPostgresqlRepository(q, svcLog)
+
+	tasklistID, err := repo.CreateTaskList(context.Background(), repository.CreateTaskListDTO{
+		UserID:      1,
+		Title:       "TEST LIST",
+		Description: sql.NullString{},
+	})
+
 	task, err := repo.CreateTask(context.Background(), repository.CreateTaskDTO{
-		TaskListID: 1,
+		TaskListID: tasklistID,
 		UserID:     1,
 		Title:      "hello world",
 		Description: sql.NullString{

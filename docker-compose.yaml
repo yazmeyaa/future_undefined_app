@@ -17,8 +17,11 @@ services:
       POSTGRES_USER: ${PROJECTS_DB_USERNAME}
       POSTGRES_DB: ${PROJECTS_DB_DATABASE}
 
+    ports:
+      - "${PROJECTS_DB_HOST_PORT}:5432"
+
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready", "-d ${POSTGRES_DATABASE}", "-U ${POSTGRES_USER}" ]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 2s
       timeout: 60s
     volumes:
@@ -44,7 +47,7 @@ services:
       projects:
     depends_on:
       projects_db:
-        condition: service_completed_successfully
+        condition: service_healthy
       projects_cache:
         condition: service_started
 
@@ -54,6 +57,8 @@ services:
     container_name: "task_list_db"
     env_file:
       - .env
+    ports:
+      - "${TASK_LIST_DB_HOST_PORT}:5432"
     environment:
       POSTGRES_USER: ${TASK_LIST_DB_USERNAME}
       POSTGRES_PASSWORD: ${TASK_LIST_DB_PASSWORD}
@@ -64,7 +69,7 @@ services:
       task_list:
     healthcheck:
       interval: 3s
-      test: [ "CMD-SHELL", "pg_isready", "-d", "${TASK_LIST_DB_DATABASE}", "-U", "${POSTGRES_USER}" ]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       timeout: 60s
 
   task_list:
@@ -83,7 +88,7 @@ services:
       dockerfile: task_list/cmd/server/Dockerfile
     depends_on:
       task_list_db:
-        condition: service_completed_successfully
+        condition: service_healthy
     networks:
       task_list:
 
@@ -93,6 +98,8 @@ services:
     build:
       context: .
       dockerfile: gateway/cmd/Dockerfile
+    ports:
+      - "8080:8080"
     networks:
       projects:
       task_list:

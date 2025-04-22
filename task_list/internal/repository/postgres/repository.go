@@ -15,6 +15,20 @@ type Repository struct {
 	log *slog.Logger
 }
 
+func (r Repository) CreateTaskList(ctx context.Context, dto repository.CreateTaskListDTO) (int32, error) {
+	params := sqlctasklist.CreateTaskListParams{
+		UserID:      dto.UserID,
+		Title:       dto.Title,
+		Description: toPgText(dto.Description),
+	}
+	res, err := r.q.CreateTaskList(ctx, params)
+	if err != nil {
+		return 0, err
+	}
+
+	return res, err
+}
+
 func (r Repository) CreateTask(ctx context.Context, dto repository.CreateTaskDTO) (int32, error) {
 	id, err := r.q.CreateTask(ctx, sqlctasklist.CreateTaskParams{
 		UserID:      dto.UserID,

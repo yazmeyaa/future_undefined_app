@@ -33,6 +33,12 @@ type PaginationOptions struct {
 	Offset int32
 }
 
+type CreateTaskListDTO struct {
+	UserID      int32
+	Title       string
+	Description sql.NullString
+}
+
 type TaskListRepository interface {
 	CreateTask(ctx context.Context, dto CreateTaskDTO) (int32, error)
 	GetTaskByID(ctx context.Context, id int32) (*model.Task, error)
@@ -40,6 +46,7 @@ type TaskListRepository interface {
 	DeleteTask(ctx context.Context, id int32) error
 	DeleteTaskBatch(ctx context.Context, idList []int32) error
 
+	CreateTaskList(ctx context.Context, dto CreateTaskListDTO) (int32, error)
 	GetTaskListByID(ctx context.Context, id int32) (*model.TaskList, error)
 	GetTasksByTaskList(ctx context.Context, taskListID int32, options PaginationOptions) ([]model.Task, error)
 	GetTaskListsByUserID(ctx context.Context, userID int32, options PaginationOptions) ([]model.TaskList, error)

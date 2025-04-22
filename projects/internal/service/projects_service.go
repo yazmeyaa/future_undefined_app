@@ -22,6 +22,20 @@ func (p *ProjectsService) GetById(ctx context.Context, id int64) (*model.Project
 	return proj, nil
 }
 
-func NewProjectsService(repo repository.ProjectsRepository) *ProjectsService {
-	return &ProjectsService{repo: repo}
+type GetProjectsListOptions struct {
+	Limit  int32
+	Offset int32
+}
+
+func (p *ProjectsService) GetList(ctx context.Context, opts GetProjectsListOptions) ([]model.Project, error) {
+	list, err := p.repo.List(ctx, opts.Limit, opts.Offset)
+	if err != nil {
+		p.logger.Warn("ProjectService.GetList", "error", err.Error())
+		return nil, err
+	}
+	return list, nil
+}
+
+func NewProjectsService(repo repository.ProjectsRepository, logger *slog.Logger) *ProjectsService {
+	return &ProjectsService{repo: repo, logger: logger}
 }

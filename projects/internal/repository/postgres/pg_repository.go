@@ -52,6 +52,9 @@ func (p *pgRepository) List(ctx context.Context, limit int32, offset int32) ([]m
 	}
 
 	res := make([]model.Project, len(list))
+	if len(list) == 0 {
+		return res, nil
+	}
 
 	for idx, item := range list {
 		res[idx] = model.Project{

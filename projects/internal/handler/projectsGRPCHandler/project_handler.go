@@ -36,8 +36,30 @@ func (p ProjectHandler) GetById(ctx context.Context, request *grpcProjects.GetPr
 }
 
 func (p ProjectHandler) GetList(ctx context.Context, request *grpcProjects.GetProjectListRequest) (*grpcProjects.GetProjectListResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	list, err := p.projectService.GetList(ctx, service.GetProjectsListOptions{
+		Limit:  10,
+		Offset: 0,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res := grpcProjects.GetProjectListResponse{
+		Items: make([]*grpcProjects.Project, len(list)),
+	}
+
+	for i := 0; i < len(list); i++ {
+		res.Items[i] = &grpcProjects.Project{
+			Id:          list[i].ID,
+			Title:       list[i].Title,
+			Description: list[i].Description,
+			GithubUrl:   &list[i].GithubUrl,
+			ProjectUrl:  &list[i].ProjectUrl,
+			CreatedAt:   timestamppb.New(list[i].CreatedAt),
+		}
+	}
+
+	return &res, nil
 }
 
 func (p ProjectHandler) DeleteById(ctx context.Context, request *grpcProjects.DeleteByIdRequest) (*grpcProjects.Empty, error) {

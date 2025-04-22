@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS task_list_share;
+DROP TABLE IF EXISTS task_share;
+DROP TABLE IF EXISTS task;
+DROP TABLE IF EXISTS task_list;
+DROP TYPE IF EXISTS TaskStatus;

@@ -3,7 +3,7 @@ info:
   title: future_undefined_app
   version: 1.0.0
 servers:
-  - url: 'https://api.magic-lizard.ru'
+  - url: 'http://localhost:8080'
 paths:
   /projects:
     get:
