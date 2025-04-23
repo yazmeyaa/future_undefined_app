@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"github.com/jackc/pgx/v5"
 	"github.com/yazmeyaa/future_undefined_app/pkg/logger"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/model"
@@ -55,21 +54,19 @@ func main() {
 
 	repo := postgres.NewPostgresqlRepository(q, svcLog)
 
+	d := "test"
 	tasklistID, err := repo.CreateTaskList(context.Background(), repository.CreateTaskListDTO{
 		UserID:      1,
 		Title:       "TEST LIST",
-		Description: sql.NullString{},
+		Description: &d,
 	})
 
 	task, err := repo.CreateTask(context.Background(), repository.CreateTaskDTO{
-		TaskListID: tasklistID,
-		UserID:     1,
-		Title:      "hello world",
-		Description: sql.NullString{
-			String: "hello world",
-			Valid:  true,
-		},
-		Status: model.TaskStatusCreated,
+		TaskListID:  tasklistID,
+		UserID:      1,
+		Title:       "hello world",
+		Description: &d,
+		Status:      model.TaskStatusCreated,
 	})
 	if err != nil {
 		log.Fatal(err)

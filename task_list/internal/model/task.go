@@ -18,7 +18,7 @@ type Task struct {
 	ID          int32
 	TaskListID  int32
 	Title       string
-	Description string
+	Description *string
 	UserID      int32
 	Status      TaskStatus
 	CreatedAt   time.Time
@@ -28,7 +28,7 @@ type TaskList struct {
 	ID          int32
 	UserID      int32
 	Title       string
-	Description string
+	Description *string
 	CreatedAt   time.Time
 }
 

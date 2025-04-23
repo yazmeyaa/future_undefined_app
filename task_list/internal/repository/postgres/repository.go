@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/model"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/repository"
@@ -41,6 +40,14 @@ func (r Repository) CreateTask(ctx context.Context, dto repository.CreateTaskDTO
 	return id, err
 }
 
+func toNullString(s pgtype.Text) *string {
+	if !s.Valid {
+		return nil
+	}
+
+	return &s.String
+}
+
 func (r Repository) GetTaskByID(ctx context.Context, id int32) (*model.Task, error) {
 	task, err := r.q.GetTaskByID(ctx, id)
 	if err != nil {
@@ -51,7 +58,7 @@ func (r Repository) GetTaskByID(ctx context.Context, id int32) (*model.Task, err
 		ID:          task.ID,
 		TaskListID:  task.TaskListID,
 		Title:       task.Title,
-		Description: task.Description.String,
+		Description: toNullString(task.Description),
 		UserID:      task.UserID,
 		Status:      model.TaskStatus(task.Status),
 		CreatedAt:   task.CreatedAt.Time,
@@ -61,7 +68,7 @@ func (r Repository) GetTaskByID(ctx context.Context, id int32) (*model.Task, err
 func (r Repository) UpdateTask(ctx context.Context, id int32, dto repository.UpdateTaskDTO) error {
 	return r.q.UpdateTask(ctx, sqlctasklist.UpdateTaskParams{
 		Title:       dto.Title,
-		Description: pgtype.Text{String: dto.Description.String, Valid: dto.Description.Valid},
+		Description: toPgText(dto.Description),
 		UserID:      dto.UserID,
 		TaskListID:  dto.TaskListID,
 		Status:      sqlctasklist.Taskstatus(dto.Status),
@@ -87,7 +94,7 @@ func (r Repository) GetTaskListByID(ctx context.Context, id int32) (*model.TaskL
 		ID:          res.ID,
 		UserID:      res.UserID,
 		Title:       res.Title,
-		Description: res.Description.String,
+		Description: toNullString(res.Description),
 		CreatedAt:   res.CreatedAt.Time,
 	}, nil
 }
@@ -108,7 +115,7 @@ func (r Repository) GetTasksByTaskList(ctx context.Context, taskListID int32, op
 			ID:          item.ID,
 			TaskListID:  item.TaskListID,
 			Title:       item.Title,
-			Description: item.Description.String,
+			Description: toNullString(item.Description),
 			UserID:      item.UserID,
 			Status:      model.TaskStatus(item.Status),
 			CreatedAt:   item.CreatedAt.Time,
@@ -135,7 +142,7 @@ func (r Repository) GetTaskListsByUserID(ctx context.Context, userID int32, opti
 			ID:          item.ID,
 			UserID:      item.UserID,
 			Title:       item.Title,
-			Description: item.Description.String,
+			Description: toNullString(item.Description),
 			CreatedAt:   item.CreatedAt.Time,
 		}
 	}
@@ -156,17 +163,23 @@ func (r Repository) UpdateTaskList(ctx context.Context, id int32, dto repository
 	})
 }
 
-func toPgText(nullString sql.NullString) pgtype.Text {
+func toPgText(nullString *string) pgtype.Text {
+	if nullString == nil {
+		return pgtype.Text{}
+	}
 	return pgtype.Text{
-		String: nullString.String,
-		Valid:  nullString.Valid,
+		String: *nullString,
+		Valid:  true,
 	}
 }
 
-func toPgInt4(nullInt sql.NullInt32) pgtype.Int4 {
+func toPgInt4(nullInt *int32) pgtype.Int4 {
+	if nullInt == nil {
+		return pgtype.Int4{}
+	}
 	return pgtype.Int4{
-		Int32: nullInt.Int32,
-		Valid: nullInt.Valid,
+		Int32: *nullInt,
+		Valid: true,
 	}
 }
 

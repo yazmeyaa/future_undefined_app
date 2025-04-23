@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/model"
 )
 
@@ -10,7 +9,7 @@ type CreateTaskDTO struct {
 	TaskListID  int32
 	UserID      int32
 	Title       string
-	Description sql.NullString
+	Description *string
 	Status      model.TaskStatus
 }
 
@@ -18,14 +17,14 @@ type UpdateTaskDTO struct {
 	TaskListID  int32
 	UserID      int32
 	Title       string
-	Description sql.NullString
+	Description *string
 	Status      model.TaskStatus
 }
 
 type UpdateTaskListDTO struct {
-	UserID      sql.NullInt32
-	Title       sql.NullString
-	Description sql.NullString
+	UserID      *int32
+	Title       *string
+	Description *string
 }
 
 type PaginationOptions struct {
@@ -36,7 +35,7 @@ type PaginationOptions struct {
 type CreateTaskListDTO struct {
 	UserID      int32
 	Title       string
-	Description sql.NullString
+	Description *string
 }
 
 type TaskListRepository interface {

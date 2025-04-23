@@ -2,32 +2,17 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/model"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/repository"
 	"log/slog"
 )
-
-func toNullInt32(i *int32) sql.NullInt32 {
-	if i == nil {
-		return sql.NullInt32{Valid: false}
-	}
-	return sql.NullInt32{Int32: *i, Valid: true}
-}
-
-func toNullString(s *string) sql.NullString {
-	if s == nil {
-		return sql.NullString{Valid: false}
-	}
-	return sql.NullString{String: *s, Valid: true}
-}
 
 type TaskListService struct {
 	r      repository.TaskListRepository
 	logger *slog.Logger
 }
 
-func (t *TaskListService) GetTaskList(ctx context.Context, id int32) (*model.TaskList, error) {
+func (t *TaskListService) GetTaskListByID(ctx context.Context, id int32) (*model.TaskList, error) {
 	list, err := t.r.GetTaskListByID(ctx, id)
 	if err != nil {
 		t.logger.Error("GetTaskListByID", "error", err)
@@ -47,7 +32,7 @@ func (t *TaskListService) CreateTaskList(ctx context.Context, data CreateTaskLis
 	opts := repository.CreateTaskListDTO{
 		UserID:      data.UserID,
 		Title:       data.Title,
-		Description: toNullString(data.Description),
+		Description: data.Description,
 	}
 
 	id, err := t.r.CreateTaskList(ctx, opts)
@@ -77,9 +62,9 @@ type UpdateTaskListOptions struct {
 
 func (t *TaskListService) UpdateTaskList(ctx context.Context, id int32, data UpdateTaskListOptions) error {
 	opts := repository.UpdateTaskListDTO{
-		UserID:      toNullInt32(data.UserID),
-		Title:       toNullString(data.Title),
-		Description: toNullString(data.Description),
+		UserID:      data.UserID,
+		Title:       data.Title,
+		Description: data.Description,
 	}
 
 	err := t.r.UpdateTaskList(ctx, id, opts)
@@ -110,8 +95,92 @@ func (t *TaskListService) GetTaskListsByUserID(ctx context.Context, id int32, op
 }
 
 type CreateTaskOptions struct {
+	Title       string
+	Description *string
+	TaskListID  int32
+	UserID      int32
+	Status      model.TaskStatus
 }
 
-func (t *TaskListService) CreateTask(ctx context.Context, data repository.CreateTaskDTO) (int32, error) {
-	return 0, nil
+func (t *TaskListService) CreateTask(ctx context.Context, data CreateTaskOptions) (int32, error) {
+	opts := repository.CreateTaskDTO{
+		TaskListID:  data.TaskListID,
+		UserID:      data.UserID,
+		Title:       data.Title,
+		Description: data.Description,
+		Status:      data.Status,
+	}
+	id, err := t.r.CreateTask(ctx, opts)
+
+	if err != nil {
+		t.logger.Error("CreateTask", "error", err)
+		return 0, err
+	}
+
+	return id, err
+}
+
+func (t *TaskListService) DeleteTask(ctx context.Context, id int32) error {
+	err := t.r.DeleteTask(ctx, id)
+	if err != nil {
+		t.logger.Error("DeleteTask", "error", err)
+		return err
+	}
+	return nil
+}
+
+type UpdateTaskOptions struct {
+	Title       string
+	Description *string
+	TaskListID  int32
+	UserID      int32
+	Status      model.TaskStatus
+}
+
+func (t *TaskListService) UpdateTask(ctx context.Context, taskID int32, data UpdateTaskOptions) error {
+	opts := repository.UpdateTaskDTO{
+		TaskListID:  data.TaskListID,
+		UserID:      data.UserID,
+		Title:       data.Title,
+		Description: data.Description,
+		Status:      data.Status,
+	}
+
+	err := t.r.UpdateTask(ctx, taskID, opts)
+	if err != nil {
+		t.logger.Error("UpdateTask", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+type GetTasksOptions struct {
+	Limit  int32
+	Offset int32
+}
+
+func (t *TaskListService) GetTasksByTaskListID(ctx context.Context, taskListID int32, options GetTasksOptions) ([]model.Task, error) {
+	opts := repository.PaginationOptions{
+		Limit:  options.Limit,
+		Offset: options.Offset,
+	}
+
+	list, err := t.r.GetTasksByTaskList(ctx, taskListID, opts)
+
+	if err != nil {
+		t.logger.Error("GetTasksByTaskListID", "error", err)
+		return nil, err
+	}
+
+	return list, err
+}
+
+func (t *TaskListService) GetTaskByID(ctx context.Context, id int32) (*model.Task, error) {
+	task, err := t.r.GetTaskByID(ctx, id)
+	if err != nil {
+		t.logger.Error("GetTaskByID", "error", err)
+		return nil, err
+	}
+	return task, err
 }
