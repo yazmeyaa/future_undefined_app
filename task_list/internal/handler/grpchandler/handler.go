@@ -11,6 +11,23 @@ import (
 	"log/slog"
 )
 
+func modelStatusToGRPCStatus(taskStatus model.TaskStatus) grpcTaskList.TaskStatus {
+	switch taskStatus {
+	case model.TaskStatusCreated:
+		return grpcTaskList.TaskStatus_created
+	case model.TaskStatusInProgress:
+		return grpcTaskList.TaskStatus_in_progress
+	case model.TaskStatusCompleted:
+		return grpcTaskList.TaskStatus_completed
+	case model.TaskStatusFailed:
+		return grpcTaskList.TaskStatus_failed
+	case model.TaskStatusCanceled:
+		return grpcTaskList.TaskStatus_canceled
+	default:
+		return grpcTaskList.TaskStatus_created
+	}
+}
+
 type TaskListHandler struct {
 	svc *service.TaskListService
 	grpcTaskList.UnimplementedTaskListServiceServer
@@ -48,8 +65,6 @@ func (t TaskListHandler) GetTaskByID(ctx context.Context, request *grpcTaskList.
 		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
 	}
 
-	grpcStatus := grpcTaskList.TaskStatus(grpcTaskList.TaskStatus_value[string(task.Status)])
-
 	response := &grpcTaskList.GetTaskByIDResponse{
 		Task: &grpcTaskList.Task{
 			Id:          task.ID,
@@ -57,7 +72,7 @@ func (t TaskListHandler) GetTaskByID(ctx context.Context, request *grpcTaskList.
 			Title:       task.Title,
 			Description: task.Description,
 			UserId:      task.UserID,
-			Status:      grpcStatus,
+			Status:      modelStatusToGRPCStatus(task.Status),
 			CreatedAt:   timestamppb.New(task.CreatedAt),
 		},
 	}
@@ -66,8 +81,33 @@ func (t TaskListHandler) GetTaskByID(ctx context.Context, request *grpcTaskList.
 }
 
 func (t TaskListHandler) GetListOfTasks(ctx context.Context, request *grpcTaskList.GetTaskListRequest) (*grpcTaskList.GetTaskListResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	tasks, err := t.svc.GetTasksByTaskListID(ctx, request.TaskListId, service.GetTasksOptions{
+		Limit:  10,
+		Offset: 0,
+	})
+	if err != nil {
+		t.logger.Error("get tasks error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+
+	response := &grpcTaskList.GetTaskListResponse{
+		Tasks: make([]*grpcTaskList.Task, 0),
+	}
+
+	for i := 0; i < len(tasks); i++ {
+		task := tasks[i]
+		response.Tasks[i] = &grpcTaskList.Task{
+			Id:          task.ID,
+			TaskListId:  task.TaskListID,
+			Title:       task.Title,
+			Description: task.Description,
+			UserId:      task.UserID,
+			CreatedAt:   timestamppb.New(task.CreatedAt),
+			Status:      modelStatusToGRPCStatus(task.Status),
+		}
+	}
+
+	return response, nil
 }
 
 func (t TaskListHandler) UpdateTask(ctx context.Context, request *grpcTaskList.UpdateTaskRequest) (*grpcTaskList.UpdateTaskResponse, error) {

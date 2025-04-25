@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	"github.com/jackc/pgx/v5"
+	grpcTaskList "github.com/yazmeyaa/future_undefined_app/api/proto/task_list"
 	"github.com/yazmeyaa/future_undefined_app/pkg/logger"
-	"github.com/yazmeyaa/future_undefined_app/task_list/internal/model"
-	"github.com/yazmeyaa/future_undefined_app/task_list/internal/repository"
+	"github.com/yazmeyaa/future_undefined_app/task_list/internal/handler/grpchandler"
 	"github.com/yazmeyaa/future_undefined_app/task_list/internal/repository/postgres"
 	sqlctasklist "github.com/yazmeyaa/future_undefined_app/task_list/internal/repository/postgres/sqlc/generated"
+	"github.com/yazmeyaa/future_undefined_app/task_list/internal/service"
+	"google.golang.org/grpc"
 	"log"
+	"net"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 )
 
 func getEnv(key, fallback string) string {
@@ -51,26 +56,27 @@ func main() {
 	}
 
 	q := sqlctasklist.New(conn)
-
 	repo := postgres.NewPostgresqlRepository(q, svcLog)
 
-	d := "test"
-	tasklistID, err := repo.CreateTaskList(context.Background(), repository.CreateTaskListDTO{
-		UserID:      1,
-		Title:       "TEST LIST",
-		Description: &d,
-	})
+	svc := service.New(repo, svcLog)
+	h := grpchandler.NewGRPCHandler(svc, svcLog)
+	server := grpc.NewServer()
+	grpcTaskList.RegisterTaskListServiceServer(server, h)
 
-	task, err := repo.CreateTask(context.Background(), repository.CreateTaskDTO{
-		TaskListID:  tasklistID,
-		UserID:      1,
-		Title:       "hello world",
-		Description: &d,
-		Status:      model.TaskStatusCreated,
-	})
+	exit := make(chan os.Signal, 1)
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to listen: %v", err)
 	}
-
-	log.Printf("%+v", task)
+	
+	go func() {
+		if err := server.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
+	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
+	svcLog.Info("server started")
+	<-exit
+	svcLog.Info("shutting down server...")
+	server.Stop()
 }

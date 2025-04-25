@@ -12,6 +12,13 @@ type TaskListService struct {
 	logger *slog.Logger
 }
 
+func New(r repository.TaskListRepository, l *slog.Logger) *TaskListService {
+	return &TaskListService{
+		r:      r,
+		logger: l,
+	}
+}
+
 func (t *TaskListService) GetTaskListByID(ctx context.Context, id int32) (*model.TaskList, error) {
 	list, err := t.r.GetTaskListByID(ctx, id)
 	if err != nil {
