@@ -27,8 +27,113 @@ paths:
         200:
           $ref: "#/components/responses/ListOfProjectsResponse"
 
-tags:
-  - name: Projects
+  /tasks/task_list/{task_list_id}:
+    parameters:
+      - name: task_list_id
+        in: path
+        schema:
+          type: integer
+    get:
+      description: "Get TaskList info by ID"
+      tags:
+        - TaskLists
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+
+    delete:
+      description: "Delete TaskList by ID"
+      tags:
+        - TaskLists
+      responses:
+        204:
+          description: OK.
+
+    patch:
+      description: "Update TaskList by ID"
+      tags:
+        - TaskLists
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+
+  /tasks/task_list/{task_list_id}/get_tasks:
+    parameters:
+      - name: 'task_list_id'
+        in: path
+        schema:
+          type: integer
+    get:
+      description: >
+        Get list of tasks by tasklist id.
+      tags:
+        - Tasks
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+
+
+
+  /tasks/task/{task_id}:
+    parameters:
+      - name: task_id
+        in: path
+        schema:
+          type: integer
+    get:
+      description: "Get task by ID"
+      tags:
+        - Tasks
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+    delete:
+      description: "Delete task by ID"
+      tags:
+        - Tasks
+      responses:
+        204:
+          description: OK. Task successfully removed.
+
+    patch:
+      description: "Update task by ID"
+      tags:
+        - Tasks
+      responses:
+        200:
+          description: Task modified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/task_list/{task_list_id}/tasks:
+
+
 
 components:
   responses:
@@ -58,3 +163,47 @@ components:
         projectUrl:
           type: string
           nullable: true
+
+    Task:
+      description: "Task"
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - userID
+        - createdAt
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        userID:
+          type: integer
+        status:
+          type: string
+          enum: [ created, in_progress, canceled, completed, failed ]
+        createdAt:
+          type: string
+
+    TaskList:
+      description: List of tasks.
+      type: object
+      required:
+        - id
+        - userID
+        - title
+        - createdAt
+      properties:
+        id:
+          type: integer
+        userID:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string

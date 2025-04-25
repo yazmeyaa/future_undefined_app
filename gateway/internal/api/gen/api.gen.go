@@ -19,6 +19,15 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for TaskStatus.
+const (
+	Canceled   TaskStatus = "canceled"
+	Completed  TaskStatus = "completed"
+	Created    TaskStatus = "created"
+	Failed     TaskStatus = "failed"
+	InProgress TaskStatus = "in_progress"
+)
+
 // Project defines model for Project.
 type Project struct {
 	Description *string `json:"description,omitempty"`
@@ -26,6 +35,28 @@ type Project struct {
 	Id          *int    `json:"id,omitempty"`
 	ProjectUrl  *string `json:"projectUrl"`
 	Title       *string `json:"title,omitempty"`
+}
+
+// Task Task
+type Task struct {
+	CreatedAt   string     `json:"createdAt"`
+	Description *string    `json:"description,omitempty"`
+	Id          int        `json:"id"`
+	Status      TaskStatus `json:"status"`
+	Title       string     `json:"title"`
+	UserID      int        `json:"userID"`
+}
+
+// TaskStatus defines model for Task.Status.
+type TaskStatus string
+
+// TaskList List of tasks.
+type TaskList struct {
+	CreatedAt   string  `json:"createdAt"`
+	Description *string `json:"description,omitempty"`
+	Id          int     `json:"id"`
+	Title       string  `json:"title"`
+	UserID      int     `json:"userID"`
 }
 
 // ListOfProjectsResponse defines model for ListOfProjectsResponse.
@@ -42,6 +73,27 @@ type ServerInterface interface {
 
 	// (GET /projects)
 	GetProjects(w http.ResponseWriter, r *http.Request, params GetProjectsParams)
+
+	// (DELETE /tasks/task/{task_id})
+	DeleteTasksTaskTaskId(w http.ResponseWriter, r *http.Request, taskId int)
+
+	// (GET /tasks/task/{task_id})
+	GetTasksTaskTaskId(w http.ResponseWriter, r *http.Request, taskId int)
+
+	// (PATCH /tasks/task/{task_id})
+	PatchTasksTaskTaskId(w http.ResponseWriter, r *http.Request, taskId int)
+
+	// (DELETE /tasks/task_list/{task_list_id})
+	DeleteTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request, taskListId int)
+
+	// (GET /tasks/task_list/{task_list_id})
+	GetTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request, taskListId int)
+
+	// (PATCH /tasks/task_list/{task_list_id})
+	PatchTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request, taskListId int)
+
+	// (GET /tasks/task_list/{task_list_id}/get_tasks)
+	GetTasksTaskListTaskListIdGetTasks(w http.ResponseWriter, r *http.Request, taskListId int)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -79,6 +131,181 @@ func (siw *ServerInterfaceWrapper) GetProjects(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetProjects(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteTasksTaskTaskId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTasksTaskTaskId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_id" -------------
+	var taskId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_id", r.PathValue("task_id"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteTasksTaskTaskId(w, r, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTasksTaskTaskId operation middleware
+func (siw *ServerInterfaceWrapper) GetTasksTaskTaskId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_id" -------------
+	var taskId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_id", r.PathValue("task_id"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTasksTaskTaskId(w, r, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchTasksTaskTaskId operation middleware
+func (siw *ServerInterfaceWrapper) PatchTasksTaskTaskId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_id" -------------
+	var taskId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_id", r.PathValue("task_id"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchTasksTaskTaskId(w, r, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteTasksTaskListTaskListId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_list_id" -------------
+	var taskListId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_list_id", r.PathValue("task_list_id"), &taskListId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_list_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteTasksTaskListTaskListId(w, r, taskListId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTasksTaskListTaskListId operation middleware
+func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_list_id" -------------
+	var taskListId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_list_id", r.PathValue("task_list_id"), &taskListId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_list_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTasksTaskListTaskListId(w, r, taskListId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchTasksTaskListTaskListId operation middleware
+func (siw *ServerInterfaceWrapper) PatchTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_list_id" -------------
+	var taskListId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_list_id", r.PathValue("task_list_id"), &taskListId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_list_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchTasksTaskListTaskListId(w, r, taskListId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTasksTaskListTaskListIdGetTasks operation middleware
+func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListIdGetTasks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "task_list_id" -------------
+	var taskListId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "task_list_id", r.PathValue("task_list_id"), &taskListId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "task_list_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTasksTaskListTaskListIdGetTasks(w, r, taskListId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -209,6 +436,13 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	}
 
 	m.HandleFunc("GET "+options.BaseURL+"/projects", wrapper.GetProjects)
+	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task/{task_id}", wrapper.DeleteTasksTaskTaskId)
+	m.HandleFunc("GET "+options.BaseURL+"/tasks/task/{task_id}", wrapper.GetTasksTaskTaskId)
+	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task/{task_id}", wrapper.PatchTasksTaskTaskId)
+	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.DeleteTasksTaskListTaskListId)
+	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.GetTasksTaskListTaskListId)
+	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.PatchTasksTaskListTaskListId)
+	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}/get_tasks", wrapper.GetTasksTaskListTaskListIdGetTasks)
 
 	return m
 }
@@ -216,14 +450,20 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/4yTX2vcMAzAv8qh7dG7pNubv8AYDHYM9jSO4kuUnIpje7JcuIV892LnT1vaQN8cWflJ",
-	"/lkeofFD8A6dRNAjMMbgXcTy8ZOi/OpO7B+wkfh72co7jXeCTvLShGCpMULeVQ/RuxyLzRUHk1ckOBTW",
-	"Z8YONHyqnutVc1qslgowKZBbQNBgmM0NpmlS0GJsmELmgy4tHXx3CEtTkFMWTi6zovQIgX1AFprP8goz",
-	"rnWiMLk+F+5Jrunyh23edclac7EIWjiheptN7QsIOcEeOceXtj6KERKL77TzLMJfZjM5RK7zJXn+C7ok",
-	"ifE+uRY7ctjemxBAwSNynGXdHetjnev4gM4EAg3fSkhBMHItXqrNpB6hR3njCr6jHOyifW4nQkFyufQf",
-	"7ZyzjkmBsxlQkCPovyNQpvxLyDdQ4MxQnOW5OCGfTI+gXgxMi51JVkDf1WpP4CZ8Uu/Twy71I9Czev0M",
-	"vtb13gRvedXOWylXafosAjZD53KdEflxVZTywMBVJERdVSbQcTA9NV8s/TfcHjlB7moBjesxN+B0np4C",
-	"AAD//3jFlSPJAwAA",
+	"H4sIAAAAAAAC/8xXXWvrOBD9K2Z2H03su7sPF78tXLiULjQs26duCIo9dtTakiqNCyH4vy8jf6Ru7MSl",
+	"ZelDXUUan5k5czSyjpDqymiFihwkR7DojFYO/Y+/pKO7fG31I6bk/u6WeCXVilARD4UxpUwFSa2iR6cV",
+	"z7l0j5XgkSSsPNavFnNI4Jfo5C9qzVzUeYAmBDoYhASEteIATdOEkKFLrTSMD4kPKdB5YLqggE06HHbT",
+	"QyVHMFYbtCTbXEYwx96PIytVwY4LSft6d29LXlV1WYpdiZCQrTE8t5bZKxCpCAu0PN+FtRSGJJU4Ec6J",
+	"CL3rmflHuKezRNrZ8E2uqUVBmP1Jk5leY2IuN0eCao+Pqq4geej9QAhSbY3VhUXnIIRUqBRLv8DVLrE1",
+	"yoXkyc07iAihdmhvfkxF1IRg8bmWFjMORrKLFmeIdXg9fMXJZoZcltY5wb3gSLgnt/qfqP4sOobse14u",
+	"scAIUuXag7cBQF5TbXFbqwxzqTDbCmMghBe0rqXn2ypexRyYNqiEkZDA734qBCNo7zmKhs2aHKHACZJ/",
+	"IgVlR3QbDteOefZ95SZrbfpO5MGtqJDQOkgejiAZ5blGe4AQlKg8M9x61mjXovCSGHpShrmoS4LkWxzO",
+	"7dFXtE6jm1nUJaCbcNxpf4vjuSY52EUz7dh3C1EwETAwtOHZyIvWP6MjP7cya9pYeU+e1+GHn/daD3aH",
+	"wEtnXIXWgreL4wf/3bDS3mTzxzn23e0qYPPA1WmKzuV1WR4Ci5V+wWw1ysLDw4a78pxaLoT4E+lqfPG7",
+	"DrFLZ5dvwBMH1d3tTEpTyuWtcpJWV6mRuqYUZASl+3N67k0mLhdxzS9+AY68HCqdyVxiNknXWMRb7hGd",
+	"knm4UM59c18mabbs/y+X9ln0/PoVDQ9xcdddIOZrkX1uwfxxuEzYp1wXirsr3gcVfqWuY5V/efKuSz0q",
+	"kLbeZNFB6i2ZGx74SZmt/lXvkFi/8lG2xp9Mw5Vg0d2g7R1vLwYhkCZRznwHTXzYfG5zXqbfBRXtq+lv",
+	"MWhfesc1XyBgT2SSKCp1Ksq9dpR8j7/H0Gya/wIAAP//jyEPgLYNAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
