@@ -9,9 +9,58 @@ import (
 	"time"
 )
 
+var (
+	_ api.ServerInterface = Handler{}
+)
+
 type Handler struct {
 	projectsClient grpcProjects.ProjectsServiceClient
 	tasklistClient grpcTaskList.TaskListServiceClient
+}
+
+func (h Handler) CreateTaskList(w http.ResponseWriter, r *http.Request) {
+	req := api.CreateTaskListJSONRequestBody{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		// TODO: handle error!
+		return
+	}
+	createRes, err := h.tasklistClient.CreateTaskList(r.Context(), &grpcTaskList.CreateTaskListRequest{
+		UserId: int32(req.UserId),
+		Name:   req.Title,
+	})
+	if err != nil {
+		// TODO: handle error!
+		return
+	}
+
+	tl, err := h.tasklistClient.GetTaskListByID(r.Context(), &grpcTaskList.GetTaskListByIDRequest{
+		Id: createRes.Id,
+	})
+
+	if err != nil {
+		// TODO: handle error!
+		return
+	}
+
+	response := api.TaskList{
+		CreatedAt:   tl.TaskList.CreatedAt.AsTime().String(),
+		Description: tl.TaskList.Description,
+		Id:          int(tl.TaskList.Id),
+		Title:       tl.TaskList.Title,
+		UserID:      int(tl.TaskList.UserId),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(&response); err != nil {
+		return
+	}
+
+}
+
+func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (h Handler) UpdateTaskByID(w http.ResponseWriter, r *http.Request, taskId int) {

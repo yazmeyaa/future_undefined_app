@@ -21,11 +21,20 @@ import (
 
 // Defines values for TaskStatus.
 const (
-	Canceled   TaskStatus = "canceled"
-	Completed  TaskStatus = "completed"
-	Created    TaskStatus = "created"
-	Failed     TaskStatus = "failed"
-	InProgress TaskStatus = "in_progress"
+	TaskStatusCanceled   TaskStatus = "canceled"
+	TaskStatusCompleted  TaskStatus = "completed"
+	TaskStatusCreated    TaskStatus = "created"
+	TaskStatusFailed     TaskStatus = "failed"
+	TaskStatusInProgress TaskStatus = "in_progress"
+)
+
+// Defines values for CreateTaskJSONBodyStatus.
+const (
+	CreateTaskJSONBodyStatusCanceled   CreateTaskJSONBodyStatus = "canceled"
+	CreateTaskJSONBodyStatusCompleted  CreateTaskJSONBodyStatus = "completed"
+	CreateTaskJSONBodyStatusCreated    CreateTaskJSONBodyStatus = "created"
+	CreateTaskJSONBodyStatusFailed     CreateTaskJSONBodyStatus = "failed"
+	CreateTaskJSONBodyStatusInProgress CreateTaskJSONBodyStatus = "in_progress"
 )
 
 // Project defines model for Project.
@@ -43,6 +52,7 @@ type Task struct {
 	Description *string    `json:"description,omitempty"`
 	Id          int        `json:"id"`
 	Status      TaskStatus `json:"status"`
+	TaskListID  int        `json:"taskListID"`
 	Title       string     `json:"title"`
 	UserID      int        `json:"userID"`
 }
@@ -68,11 +78,38 @@ type GetProjectsListParams struct {
 	Page         *int `form:"page,omitempty" json:"page,omitempty"`
 }
 
+// CreateTaskJSONBody defines parameters for CreateTask.
+type CreateTaskJSONBody struct {
+	Description *string                   `json:"description"`
+	Status      *CreateTaskJSONBodyStatus `json:"status"`
+	TaskListID  int                       `json:"taskListID"`
+	Title       string                    `json:"title"`
+}
+
+// CreateTaskJSONBodyStatus defines parameters for CreateTask.
+type CreateTaskJSONBodyStatus string
+
+// CreateTaskListJSONBody defines parameters for CreateTaskList.
+type CreateTaskListJSONBody struct {
+	Description *string `json:"description,omitempty"`
+	Title       string  `json:"title"`
+	UserId      int     `json:"userId"`
+}
+
+// CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
+type CreateTaskJSONRequestBody CreateTaskJSONBody
+
+// CreateTaskListJSONRequestBody defines body for CreateTaskList for application/json ContentType.
+type CreateTaskListJSONRequestBody CreateTaskListJSONBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (GET /projects)
 	GetProjectsList(w http.ResponseWriter, r *http.Request, params GetProjectsListParams)
+
+	// (POST /tasks/task)
+	CreateTask(w http.ResponseWriter, r *http.Request)
 
 	// (DELETE /tasks/task/{task_id})
 	DeleteTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
@@ -82,6 +119,9 @@ type ServerInterface interface {
 
 	// (PATCH /tasks/task/{task_id})
 	UpdateTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
+
+	// (POST /tasks/task_list/)
+	CreateTaskList(w http.ResponseWriter, r *http.Request)
 
 	// (DELETE /tasks/task_list/{task_list_id})
 	DeleteTaskListByID(w http.ResponseWriter, r *http.Request, taskListId int)
@@ -131,6 +171,20 @@ func (siw *ServerInterfaceWrapper) GetProjectsList(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetProjectsList(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTask operation middleware
+func (siw *ServerInterfaceWrapper) CreateTask(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTask(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -206,6 +260,20 @@ func (siw *ServerInterfaceWrapper) UpdateTaskByID(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateTaskByID(w, r, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTaskList operation middleware
+func (siw *ServerInterfaceWrapper) CreateTaskList(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTaskList(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -436,9 +504,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	}
 
 	m.HandleFunc("GET "+options.BaseURL+"/projects", wrapper.GetProjectsList)
+	m.HandleFunc("POST "+options.BaseURL+"/tasks/task", wrapper.CreateTask)
 	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task/{task_id}", wrapper.DeleteTaskByID)
 	m.HandleFunc("GET "+options.BaseURL+"/tasks/task/{task_id}", wrapper.GetTaskByID)
 	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task/{task_id}", wrapper.UpdateTaskByID)
+	m.HandleFunc("POST "+options.BaseURL+"/tasks/task_list/", wrapper.CreateTaskList)
 	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.DeleteTaskListByID)
 	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.GetTaskListByID)
 	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.UpdateTaskListByID)
@@ -450,20 +520,22 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xXTW/jNhD9K8K0R8LStj0sdOtigcViCyQomlNqGLQ0kplIJEOOAhiG/nsx1IfjWLIV",
-	"JGh7MRRy9ObNm8cRc4DM1NZo1OQhPYBDb432GP74Q3m6KW6decCM/J/9Fu9kRhNq4kdpbaUyScro+MEb",
-	"zWs+22Et+UkR1gHrZ4cFpPBTfMwXd2E+7jNAK4D2FiEF6ZzcQ9u2AnL0mVOW8SENlCJTRLYnBRzS43Ca",
-	"ASo9gHXGoiPV1XICcxjyeHJKl5y4VLRrtneu4l3dVJXcVggpuQbFebTKX4AoTVii4/We1lIYUlThBJ2j",
-	"EGY7KPOX9I9nhXSr4lWtmUNJmP9Ok5VeU2KuNk+SmoCPuqkhvR/ygAClN9aZ0qH3ICCTOsMqbHC3K+yC",
-	"Cql4cf0GIQQ0Ht33r1OMWgEOnxrlMGcyilN0OCPX8XXxQpP1jLhsrXOBB8OR9I9+9S9J/VFyjNUPulxS",
-	"gRGULkwA7whA0VDjcNPoHAulMd9Ia0HAMzrfyfNplawSJmYsamkVpPBrWBJgJe2CRvF4WNMDlDgh8jek",
-	"qOqF7uhw71jnMFe+513MMIlCpziBkzUSOg/p/QEUIz016PYgQMs6qMPj5xbdrSyDLca5lGMhm4og/ZSI",
-	"uXP6QtppdDuLugR0LU6n7S9JMjcox7h4ZiSHiSFLFmIYgR7WvBoH44bf+MC/G5W3HVc+l+e9+BrWg9+j",
-	"7T4K9jntRBfBR+bLPmy/KuO3c9CbH6uIX4h8k2XofdFU1T5yWJtnzFcn9DmMuYt5q1zg9g1pnljypk/X",
-	"pS9WGLsTn6ebHzO1THmVD8jRTH1vTvw05RkrKdud63Jnc3m5bV3Ef6lOcEBtclUozCeFOjXshmdC71p+",
-	"XGjdYZhftS8HvcXCZ5QZ4IpXRzI8Wi+bdp7Ox7YmjM9l5j0WuNDAfZve6eIrHTw6+X8s2XUrxyXSJoQs",
-	"+jCGSFaEH8Kiyld/6zk3+S/7gc779Tm99IyX+kW3+24avL7aCyBDspq5yUxcTT520C7zafjnAt3zgNbw",
-	"vR52RDaN48pkstoZT+nn5HMC7br9JwAA//9Qdd8YTQ0AAA==",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

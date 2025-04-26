@@ -48,14 +48,11 @@ WHERE id = ANY ($1::int[]);
 -- name: UpdateTask :exec
 UPDATE task
 SET title = CASE WHEN sqlc.narg('title')::string IS NOT NULL THEN sqlc.arg('title')::int ELSE title END,
-description = CASE WHEN sqlc.narg('description')::string IS NOT NULL THEN sqlc.arg('description')::int ELSE description
-END,
-user_id = CASE WHEN sqlc.narg('user_id')::string IS NOT NULL THEN sqlc.arg('user_id')::int ELSE user_id
-END,
-task_list_id = CASE WHEN sqlc.narg('task_list_id')::string IS NOT NULL THEN sqlc.arg('task_list_id')::int ELSE task_list_id
-END,
+description = CASE WHEN sqlc.narg('description')::string IS NOT NULL THEN sqlc.arg('description')::int ELSE description END,
+user_id = CASE WHEN sqlc.narg('user_id')::int IS NOT NULL THEN sqlc.arg('user_id')::int ELSE user_id END,
+task_list_id = CASE WHEN sqlc.narg('task_list_id')::int IS NOT NULL THEN sqlc.arg('task_list_id')::int ELSE task_list_id END,
 status = CASE WHEN sqlc.narg('status')::string IS NOT NULL THEN sqlc.arg('status')::int ELSE status
-END,
+END
 WHERE id = $1;
 
 -- name: GetTaskListsByUserID :many

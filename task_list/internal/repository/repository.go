@@ -14,11 +14,11 @@ type CreateTaskDTO struct {
 }
 
 type UpdateTaskDTO struct {
-	TaskListID  int32
-	UserID      int32
-	Title       string
+	TaskListID  *int32
+	UserID      *int32
+	Title       *string
 	Description *string
-	Status      model.TaskStatus
+	Status      *model.TaskStatus
 }
 
 type UpdateTaskListDTO struct {

@@ -65,7 +65,9 @@ message UpdateTaskRequest {
   int32 id = 1;
   optional string title = 2;
   optional string description = 3;
-  optional TaskStatus status = 4;
+  optional int32 task_list_id = 4;
+  optional int32 user_id = 5;
+  optional TaskStatus status = 6;
 }
 
 message UpdateTaskResponse {

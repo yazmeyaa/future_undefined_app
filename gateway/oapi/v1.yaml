@@ -97,6 +97,72 @@ paths:
                       $ref: "#/components/schemas/Task"
 
 
+  /tasks/task_list/:
+    post:
+      description: "Create task list"
+      operationId: CreateTaskList
+      responses:
+        200:
+          description: "Created task list"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - title
+                - userId
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                userId:
+                  type: integer
+
+  /tasks/task:
+    post:
+      description: "Create task"
+      operationId: CreateTask
+      tags:
+        - Tasks
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - title
+                - status
+                - taskListID
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  nullable: true
+                  type: string
+                status:
+                  type: string
+                  enum: [ created, in_progress, canceled, completed, failed ]
+                  default: created
+                  nullable: true
+                taskListID:
+                  type: integer
+
+      responses:
+        200:
+          description: "Task created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+
 
   /tasks/task/{task_id}:
     parameters:
@@ -174,6 +240,7 @@ components:
       required:
         - id
         - title
+        - taskListID
         - status
         - userID
         - createdAt
@@ -185,6 +252,8 @@ components:
         description:
           type: string
         userID:
+          type: integer
+        taskListID:
           type: integer
         status:
           type: string

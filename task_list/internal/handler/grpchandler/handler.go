@@ -110,15 +110,43 @@ func (t TaskListHandler) GetListOfTasks(ctx context.Context, request *grpcTaskLi
 }
 
 func (t TaskListHandler) UpdateTask(ctx context.Context, request *grpcTaskList.UpdateTaskRequest) (*grpcTaskList.UpdateTaskResponse, error) {
+	var taskStatus *model.TaskStatus = nil
+	if request.Status != nil {
+		statusStr := *request.Status
+		str := statusStr.String()
+		x := model.TaskStatus(str)
+		taskStatus = &x
+	}
 	opts := service.UpdateTaskOptions{
 		Title:       request.Title,
-		Description: nil,
-		TaskListID:  0,
-		UserID:      0,
-		Status:      "",
+		Description: request.Description,
+		TaskListID:  request.TaskListId,
+		UserID:      request.UserId,
+		Status:      taskStatus,
 	}
 
-	t.svc.UpdateTask(ctx, request.Id, opts)
+	err := t.svc.UpdateTask(ctx, request.Id, opts)
+	if err != nil {
+		t.logger.Error("update task error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+
+	task, err := t.svc.GetTaskByID(ctx, request.Id)
+	if err != nil {
+		t.logger.Error("get task error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+	return &grpcTaskList.UpdateTaskResponse{
+		Task: &grpcTaskList.Task{
+			Id:          task.ID,
+			TaskListId:  task.TaskListID,
+			Title:       task.Title,
+			Description: task.Description,
+			UserId:      task.UserID,
+			Status:      modelStatusToGRPCStatus(task.Status),
+			CreatedAt:   timestamppb.New(task.CreatedAt),
+		},
+	}, nil
 }
 
 func (t TaskListHandler) DeleteTask(ctx context.Context, request *grpcTaskList.DeleteTaskRequest) (*grpcTaskList.DeleteTaskResponse, error) {

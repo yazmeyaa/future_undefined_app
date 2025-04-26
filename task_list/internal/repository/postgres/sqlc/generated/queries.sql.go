@@ -312,41 +312,44 @@ func (q *Queries) GetTasksByUserID(ctx context.Context, arg GetTasksByUserIDPara
 
 const updateTask = `-- name: UpdateTask :exec
 UPDATE task
-SET title        = $1,
-    description  = $2,
-    user_id      = $3,
-    task_list_id = $4,
-    status       = $5
-WHERE id = $6
+SET title = CASE WHEN $2::string IS NOT NULL THEN $2::int ELSE title END,
+description = CASE WHEN $3::string IS NOT NULL THEN $3::int ELSE description END,
+user_id = CASE WHEN $4::int IS NOT NULL THEN $4::int ELSE user_id END,
+task_list_id = CASE WHEN $5::int IS NOT NULL THEN $5::int ELSE task_list_id END,
+status = CASE WHEN $6::string IS NOT NULL THEN $6::int ELSE status
+END
+WHERE id = $1
 `
 
 type UpdateTaskParams struct {
-	Title       string
-	Description pgtype.Text
-	UserID      int32
-	TaskListID  int32
-	Status      Taskstatus
 	ID          int32
+	Title       pgtype.Text
+	Description pgtype.Text
+	UserID      pgtype.Int4
+	TaskListID  pgtype.Int4
+	Status      pgtype.Text
 }
 
 func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) error {
 	_, err := q.db.Exec(ctx, updateTask,
+		arg.ID,
 		arg.Title,
 		arg.Description,
 		arg.UserID,
 		arg.TaskListID,
 		arg.Status,
-		arg.ID,
 	)
 	return err
 }
 
 const updateTaskList = `-- name: UpdateTaskList :exec
 UPDATE task_list
-SET
-    user_id     = CASE WHEN $2::int IS NOT NULL THEN $2::int ELSE user_id END,
-    title     = CASE WHEN $3::text IS NOT NULL THEN $3::text ELSE title END,
-    description     = CASE WHEN $4::text IS NOT NULL THEN $4::text ELSE description END
+SET user_id = CASE WHEN $2::int IS NOT NULL THEN $2::int ELSE user_id END,
+    title     = CASE WHEN $3::text IS NOT NULL THEN $3::text ELSE title
+END
+,
+    description     = CASE WHEN $4::text IS NOT NULL THEN $4::text ELSE description
+END
 WHERE id = $1
 `
 

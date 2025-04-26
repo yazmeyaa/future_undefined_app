@@ -66,12 +66,17 @@ func (r Repository) GetTaskByID(ctx context.Context, id int32) (*model.Task, err
 }
 
 func (r Repository) UpdateTask(ctx context.Context, id int32, dto repository.UpdateTaskDTO) error {
+	status := pgtype.Text{}
+	if dto.Status != nil {
+		status.Valid = true
+		status.String = string(*dto.Status)
+	}
 	return r.q.UpdateTask(ctx, sqlctasklist.UpdateTaskParams{
-		Title:       dto.Title,
+		Title:       toPgText(dto.Title),
 		Description: toPgText(dto.Description),
-		UserID:      dto.UserID,
-		TaskListID:  dto.TaskListID,
-		Status:      sqlctasklist.Taskstatus(dto.Status),
+		UserID:      toPgInt4(dto.UserID),
+		TaskListID:  toPgInt4(dto.TaskListID),
+		Status:      status,
 		ID:          id,
 	})
 }

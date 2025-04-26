@@ -137,11 +137,11 @@ func (t *TaskListService) DeleteTask(ctx context.Context, id int32) error {
 }
 
 type UpdateTaskOptions struct {
-	Title       string
+	Title       *string
 	Description *string
-	TaskListID  int32
-	UserID      int32
-	Status      model.TaskStatus
+	TaskListID  *int32
+	UserID      *int32
+	Status      *model.TaskStatus
 }
 
 func (t *TaskListService) UpdateTask(ctx context.Context, taskID int32, data UpdateTaskOptions) error {
