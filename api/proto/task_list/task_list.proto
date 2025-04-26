@@ -1,4 +1,4 @@
-syntax="proto3";
+syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 option go_package = "./http_gateway/internal/clients/projects;grpcTaskList";
 
@@ -119,8 +119,10 @@ message DeleteTaskListResponse {
 message TaskList {
   int32 id = 1;
   int32 user_id = 2;
-  string name = 3;
-  google.protobuf.Timestamp created_at = 4;
+  string title = 3;
+  optional string description = 4;
+  string name = 5;
+  google.protobuf.Timestamp created_at = 6;
 }
 
 message Nothing {}

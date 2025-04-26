@@ -1053,8 +1053,10 @@ type TaskList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Description   *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1101,6 +1103,20 @@ func (x *TaskList) GetUserId() int32 {
 		return x.UserId
 	}
 	return 0
+}
+
+func (x *TaskList) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *TaskList) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
 }
 
 func (x *TaskList) GetName() string {
@@ -1223,13 +1239,16 @@ const file_proto_task_list_task_list_proto_rawDesc = "" +
 	"\x15DeleteTaskListRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"2\n" +
 	"\x16DeleteTaskListResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x82\x01\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\xcf\x01\n" +
 	"\bTaskList\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x129\n" +
+	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12%\n" +
+	"\vdescription\x18\x04 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x12\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\t\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\x0e\n" +
+	"\f_description\"\t\n" +
 	"\aNothing*S\n" +
 	"\n" +
 	"TaskStatus\x12\v\n" +
@@ -1337,6 +1356,7 @@ func file_proto_task_list_task_list_proto_init() {
 	file_proto_task_list_task_list_proto_msgTypes[0].OneofWrappers = []any{}
 	file_proto_task_list_task_list_proto_msgTypes[2].OneofWrappers = []any{}
 	file_proto_task_list_task_list_proto_msgTypes[7].OneofWrappers = []any{}
+	file_proto_task_list_task_list_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

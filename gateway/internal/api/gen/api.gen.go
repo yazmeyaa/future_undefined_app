@@ -62,8 +62,8 @@ type TaskList struct {
 // ListOfProjectsResponse defines model for ListOfProjectsResponse.
 type ListOfProjectsResponse = []Project
 
-// GetProjectsParams defines parameters for GetProjects.
-type GetProjectsParams struct {
+// GetProjectsListParams defines parameters for GetProjectsList.
+type GetProjectsListParams struct {
 	ItemsPerPage *int `form:"itemsPerPage,omitempty" json:"itemsPerPage,omitempty"`
 	Page         *int `form:"page,omitempty" json:"page,omitempty"`
 }
@@ -72,28 +72,28 @@ type GetProjectsParams struct {
 type ServerInterface interface {
 
 	// (GET /projects)
-	GetProjects(w http.ResponseWriter, r *http.Request, params GetProjectsParams)
+	GetProjectsList(w http.ResponseWriter, r *http.Request, params GetProjectsListParams)
 
 	// (DELETE /tasks/task/{task_id})
-	DeleteTasksTaskTaskId(w http.ResponseWriter, r *http.Request, taskId int)
+	DeleteTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
 
 	// (GET /tasks/task/{task_id})
-	GetTasksTaskTaskId(w http.ResponseWriter, r *http.Request, taskId int)
+	GetTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
 
 	// (PATCH /tasks/task/{task_id})
-	PatchTasksTaskTaskId(w http.ResponseWriter, r *http.Request, taskId int)
+	UpdateTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
 
 	// (DELETE /tasks/task_list/{task_list_id})
-	DeleteTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request, taskListId int)
+	DeleteTaskListByID(w http.ResponseWriter, r *http.Request, taskListId int)
 
 	// (GET /tasks/task_list/{task_list_id})
-	GetTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request, taskListId int)
+	GetTaskListByID(w http.ResponseWriter, r *http.Request, taskListId int)
 
 	// (PATCH /tasks/task_list/{task_list_id})
-	PatchTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request, taskListId int)
+	UpdateTaskListByID(w http.ResponseWriter, r *http.Request, taskListId int)
 
 	// (GET /tasks/task_list/{task_list_id}/get_tasks)
-	GetTasksTaskListTaskListIdGetTasks(w http.ResponseWriter, r *http.Request, taskListId int)
+	GetTasksByTaskListID(w http.ResponseWriter, r *http.Request, taskListId int)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -105,13 +105,13 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// GetProjects operation middleware
-func (siw *ServerInterfaceWrapper) GetProjects(w http.ResponseWriter, r *http.Request) {
+// GetProjectsList operation middleware
+func (siw *ServerInterfaceWrapper) GetProjectsList(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetProjectsParams
+	var params GetProjectsListParams
 
 	// ------------- Optional query parameter "itemsPerPage" -------------
 
@@ -130,7 +130,7 @@ func (siw *ServerInterfaceWrapper) GetProjects(w http.ResponseWriter, r *http.Re
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProjects(w, r, params)
+		siw.Handler.GetProjectsList(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -140,8 +140,8 @@ func (siw *ServerInterfaceWrapper) GetProjects(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
-// DeleteTasksTaskTaskId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteTasksTaskTaskId(w http.ResponseWriter, r *http.Request) {
+// DeleteTaskByID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTaskByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -155,7 +155,7 @@ func (siw *ServerInterfaceWrapper) DeleteTasksTaskTaskId(w http.ResponseWriter, 
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteTasksTaskTaskId(w, r, taskId)
+		siw.Handler.DeleteTaskByID(w, r, taskId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -165,8 +165,8 @@ func (siw *ServerInterfaceWrapper) DeleteTasksTaskTaskId(w http.ResponseWriter, 
 	handler.ServeHTTP(w, r)
 }
 
-// GetTasksTaskTaskId operation middleware
-func (siw *ServerInterfaceWrapper) GetTasksTaskTaskId(w http.ResponseWriter, r *http.Request) {
+// GetTaskByID operation middleware
+func (siw *ServerInterfaceWrapper) GetTaskByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -180,7 +180,7 @@ func (siw *ServerInterfaceWrapper) GetTasksTaskTaskId(w http.ResponseWriter, r *
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTasksTaskTaskId(w, r, taskId)
+		siw.Handler.GetTaskByID(w, r, taskId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -190,8 +190,8 @@ func (siw *ServerInterfaceWrapper) GetTasksTaskTaskId(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r)
 }
 
-// PatchTasksTaskTaskId operation middleware
-func (siw *ServerInterfaceWrapper) PatchTasksTaskTaskId(w http.ResponseWriter, r *http.Request) {
+// UpdateTaskByID operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTaskByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -205,7 +205,7 @@ func (siw *ServerInterfaceWrapper) PatchTasksTaskTaskId(w http.ResponseWriter, r
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PatchTasksTaskTaskId(w, r, taskId)
+		siw.Handler.UpdateTaskByID(w, r, taskId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -215,8 +215,8 @@ func (siw *ServerInterfaceWrapper) PatchTasksTaskTaskId(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
-// DeleteTasksTaskListTaskListId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request) {
+// DeleteTaskListByID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTaskListByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -230,7 +230,7 @@ func (siw *ServerInterfaceWrapper) DeleteTasksTaskListTaskListId(w http.Response
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteTasksTaskListTaskListId(w, r, taskListId)
+		siw.Handler.DeleteTaskListByID(w, r, taskListId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -240,8 +240,8 @@ func (siw *ServerInterfaceWrapper) DeleteTasksTaskListTaskListId(w http.Response
 	handler.ServeHTTP(w, r)
 }
 
-// GetTasksTaskListTaskListId operation middleware
-func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request) {
+// GetTaskListByID operation middleware
+func (siw *ServerInterfaceWrapper) GetTaskListByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -255,7 +255,7 @@ func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListId(w http.ResponseWri
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTasksTaskListTaskListId(w, r, taskListId)
+		siw.Handler.GetTaskListByID(w, r, taskListId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -265,8 +265,8 @@ func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListId(w http.ResponseWri
 	handler.ServeHTTP(w, r)
 }
 
-// PatchTasksTaskListTaskListId operation middleware
-func (siw *ServerInterfaceWrapper) PatchTasksTaskListTaskListId(w http.ResponseWriter, r *http.Request) {
+// UpdateTaskListByID operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTaskListByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -280,7 +280,7 @@ func (siw *ServerInterfaceWrapper) PatchTasksTaskListTaskListId(w http.ResponseW
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PatchTasksTaskListTaskListId(w, r, taskListId)
+		siw.Handler.UpdateTaskListByID(w, r, taskListId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -290,8 +290,8 @@ func (siw *ServerInterfaceWrapper) PatchTasksTaskListTaskListId(w http.ResponseW
 	handler.ServeHTTP(w, r)
 }
 
-// GetTasksTaskListTaskListIdGetTasks operation middleware
-func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListIdGetTasks(w http.ResponseWriter, r *http.Request) {
+// GetTasksByTaskListID operation middleware
+func (siw *ServerInterfaceWrapper) GetTasksByTaskListID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -305,7 +305,7 @@ func (siw *ServerInterfaceWrapper) GetTasksTaskListTaskListIdGetTasks(w http.Res
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTasksTaskListTaskListIdGetTasks(w, r, taskListId)
+		siw.Handler.GetTasksByTaskListID(w, r, taskListId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -435,14 +435,14 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	m.HandleFunc("GET "+options.BaseURL+"/projects", wrapper.GetProjects)
-	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task/{task_id}", wrapper.DeleteTasksTaskTaskId)
-	m.HandleFunc("GET "+options.BaseURL+"/tasks/task/{task_id}", wrapper.GetTasksTaskTaskId)
-	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task/{task_id}", wrapper.PatchTasksTaskTaskId)
-	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.DeleteTasksTaskListTaskListId)
-	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.GetTasksTaskListTaskListId)
-	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.PatchTasksTaskListTaskListId)
-	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}/get_tasks", wrapper.GetTasksTaskListTaskListIdGetTasks)
+	m.HandleFunc("GET "+options.BaseURL+"/projects", wrapper.GetProjectsList)
+	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task/{task_id}", wrapper.DeleteTaskByID)
+	m.HandleFunc("GET "+options.BaseURL+"/tasks/task/{task_id}", wrapper.GetTaskByID)
+	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task/{task_id}", wrapper.UpdateTaskByID)
+	m.HandleFunc("DELETE "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.DeleteTaskListByID)
+	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.GetTaskListByID)
+	m.HandleFunc("PATCH "+options.BaseURL+"/tasks/task_list/{task_list_id}", wrapper.UpdateTaskListByID)
+	m.HandleFunc("GET "+options.BaseURL+"/tasks/task_list/{task_list_id}/get_tasks", wrapper.GetTasksByTaskListID)
 
 	return m
 }
@@ -450,20 +450,20 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xXXWvrOBD9K2Z2H03su7sPF78tXLiULjQs26duCIo9dtTakiqNCyH4vy8jf6Ru7MSl",
-	"ZelDXUUan5k5czSyjpDqymiFihwkR7DojFYO/Y+/pKO7fG31I6bk/u6WeCXVilARD4UxpUwFSa2iR6cV",
-	"z7l0j5XgkSSsPNavFnNI4Jfo5C9qzVzUeYAmBDoYhASEteIATdOEkKFLrTSMD4kPKdB5YLqggE06HHbT",
-	"QyVHMFYbtCTbXEYwx96PIytVwY4LSft6d29LXlV1WYpdiZCQrTE8t5bZKxCpCAu0PN+FtRSGJJU4Ec6J",
-	"CL3rmflHuKezRNrZ8E2uqUVBmP1Jk5leY2IuN0eCao+Pqq4geej9QAhSbY3VhUXnIIRUqBRLv8DVLrE1",
-	"yoXkyc07iAihdmhvfkxF1IRg8bmWFjMORrKLFmeIdXg9fMXJZoZcltY5wb3gSLgnt/qfqP4sOobse14u",
-	"scAIUuXag7cBQF5TbXFbqwxzqTDbCmMghBe0rqXn2ypexRyYNqiEkZDA734qBCNo7zmKhs2aHKHACZJ/",
-	"IgVlR3QbDteOefZ95SZrbfpO5MGtqJDQOkgejiAZ5blGe4AQlKg8M9x61mjXovCSGHpShrmoS4LkWxzO",
-	"7dFXtE6jm1nUJaCbcNxpf4vjuSY52EUz7dh3C1EwETAwtOHZyIvWP6MjP7cya9pYeU+e1+GHn/daD3aH",
-	"wEtnXIXWgreL4wf/3bDS3mTzxzn23e0qYPPA1WmKzuV1WR4Ci5V+wWw1ysLDw4a78pxaLoT4E+lqfPG7",
-	"DrFLZ5dvwBMH1d3tTEpTyuWtcpJWV6mRuqYUZASl+3N67k0mLhdxzS9+AY68HCqdyVxiNknXWMRb7hGd",
-	"knm4UM59c18mabbs/y+X9ln0/PoVDQ9xcdddIOZrkX1uwfxxuEzYp1wXirsr3gcVfqWuY5V/efKuSz0q",
-	"kLbeZNFB6i2ZGx74SZmt/lXvkFi/8lG2xp9Mw5Vg0d2g7R1vLwYhkCZRznwHTXzYfG5zXqbfBRXtq+lv",
-	"MWhfesc1XyBgT2SSKCp1Ksq9dpR8j7/H0Gya/wIAAP//jyEPgLYNAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

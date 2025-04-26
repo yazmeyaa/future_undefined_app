@@ -91,11 +91,10 @@ func (t TaskListHandler) GetListOfTasks(ctx context.Context, request *grpcTaskLi
 	}
 
 	response := &grpcTaskList.GetTaskListResponse{
-		Tasks: make([]*grpcTaskList.Task, 0),
+		Tasks: make([]*grpcTaskList.Task, len(tasks)),
 	}
 
-	for i := 0; i < len(tasks); i++ {
-		task := tasks[i]
+	for i, task := range tasks {
 		response.Tasks[i] = &grpcTaskList.Task{
 			Id:          task.ID,
 			TaskListId:  task.TaskListID,
@@ -111,8 +110,15 @@ func (t TaskListHandler) GetListOfTasks(ctx context.Context, request *grpcTaskLi
 }
 
 func (t TaskListHandler) UpdateTask(ctx context.Context, request *grpcTaskList.UpdateTaskRequest) (*grpcTaskList.UpdateTaskResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	opts := service.UpdateTaskOptions{
+		Title:       request.Title,
+		Description: nil,
+		TaskListID:  0,
+		UserID:      0,
+		Status:      "",
+	}
+
+	t.svc.UpdateTask(ctx, request.Id, opts)
 }
 
 func (t TaskListHandler) DeleteTask(ctx context.Context, request *grpcTaskList.DeleteTaskRequest) (*grpcTaskList.DeleteTaskResponse, error) {
