@@ -5,6 +5,7 @@ import (
 	grpcProjects "github.com/yazmeyaa/future_undefined_app/api/proto/projects"
 	grpcTaskList "github.com/yazmeyaa/future_undefined_app/api/proto/task_list"
 	api "github.com/yazmeyaa/future_undefined_app/gateway/internal/api/gen"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -16,20 +17,36 @@ var (
 type Handler struct {
 	projectsClient grpcProjects.ProjectsServiceClient
 	tasklistClient grpcTaskList.TaskListServiceClient
+	logger         *slog.Logger
+}
+
+type internalServerError struct {
+	Error string `json:"error"`
+}
+
+func handleInternalError(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(internalServerError{Error: err.Error()}); err != nil {
+		return
+	}
 }
 
 func (h Handler) CreateTaskList(w http.ResponseWriter, r *http.Request) {
-	req := api.CreateTaskListJSONRequestBody{}
+	req := api.CreateTaskListJSONBody{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		// TODO: handle error!
+		h.logger.Error("CreateTaskListJSONBody json decode error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 	createRes, err := h.tasklistClient.CreateTaskList(r.Context(), &grpcTaskList.CreateTaskListRequest{
-		UserId: int32(req.UserId),
-		Name:   req.Title,
+		UserId:      int32(req.UserId),
+		Title:       req.Title,
+		Description: req.Description,
 	})
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("CreateTaskList json create error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 
@@ -38,7 +55,8 @@ func (h Handler) CreateTaskList(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("GetTaskListByID json get error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 
@@ -59,8 +77,7 @@ func (h Handler) CreateTaskList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+
 }
 
 func (h Handler) UpdateTaskByID(w http.ResponseWriter, r *http.Request, taskId int) {
@@ -73,7 +90,8 @@ func (h Handler) DeleteTaskListByID(w http.ResponseWriter, r *http.Request, task
 		Id: int32(taskListId),
 	})
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("DeleteTaskListByIDJSONRequestBody json delete error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -85,7 +103,8 @@ func (h Handler) GetTaskListByID(w http.ResponseWriter, r *http.Request, taskLis
 	})
 
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("GetTaskListByIDJSONRequestBody json get error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 
@@ -97,6 +116,8 @@ func (h Handler) GetTaskListByID(w http.ResponseWriter, r *http.Request, taskLis
 		UserID:      int(listRes.TaskList.UserId),
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		panic(err) // TODO: handle error!
 	}
@@ -107,11 +128,12 @@ func (h Handler) UpdateTaskListByID(w http.ResponseWriter, r *http.Request, task
 	panic("implement me")
 }
 
-func (h Handler) GetTasksByTaskListID(w http.ResponseWriter, r *http.Request, taskListId int) {
+func (h Handler) GetTasksByTaskListID(w http.ResponseWriter, r *http.Request, taskListId int, params api.GetTasksByTaskListIDParams) {
 	in := grpcTaskList.GetTaskListRequest{TaskListId: int32(taskListId)}
 	res, err := h.tasklistClient.GetListOfTasks(r.Context(), &in)
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("GetTasksByTaskListIDJSONRequestBody json get error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 
@@ -130,8 +152,9 @@ func (h Handler) GetTasksByTaskListID(w http.ResponseWriter, r *http.Request, ta
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(tasks); err != nil {
-		// TODO: handle error!
-		panic(err)
+		h.logger.Error("GetTasksByTaskListIDJSONRequestBody json get error: ", "error", err.Error())
+		handleInternalError(w, err)
+		return
 	}
 }
 
@@ -141,7 +164,8 @@ func (h Handler) DeleteTaskByID(w http.ResponseWriter, r *http.Request, taskId i
 	}
 	_, err := h.tasklistClient.DeleteTask(r.Context(), &in)
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("DeleteTaskByIDJSONRequestBody json delete error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -152,7 +176,8 @@ func (h Handler) GetTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
 		Id: int32(taskId),
 	})
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("GetTaskByIDJSONRequestBody json get error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 
@@ -167,8 +192,9 @@ func (h Handler) GetTaskByID(w http.ResponseWriter, r *http.Request, taskId int)
 		Title:       task.Title,
 		UserID:      int(task.UserId),
 	}); err != nil {
-		// TODO: handle error!
-		panic(err)
+		h.logger.Error("GetTaskByIDJSONRequestBody json get error: ", "error", err.Error())
+		handleInternalError(w, err)
+		return
 	}
 }
 
@@ -179,7 +205,8 @@ func (h Handler) GetProjectsList(w http.ResponseWriter, r *http.Request, params 
 	}
 	list, err := h.projectsClient.GetList(r.Context(), &grpcInput)
 	if err != nil {
-		// TODO: handle error!
+		h.logger.Error("GetProjectsListJSONRequestBody json get error: ", "error", err.Error())
+		handleInternalError(w, err)
 		return
 	}
 
@@ -191,9 +218,10 @@ func (h Handler) GetProjectsList(w http.ResponseWriter, r *http.Request, params 
 	w.WriteHeader(http.StatusOK)
 }
 
-func NewHandler(projectsClient grpcProjects.ProjectsServiceClient, tasklistClient grpcTaskList.TaskListServiceClient) *Handler {
+func NewHandler(logger *slog.Logger, projectsClient grpcProjects.ProjectsServiceClient, tasklistClient grpcTaskList.TaskListServiceClient) *Handler {
 	return &Handler{
 		projectsClient: projectsClient,
 		tasklistClient: tasklistClient,
+		logger:         logger,
 	}
 }

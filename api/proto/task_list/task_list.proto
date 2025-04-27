@@ -55,6 +55,8 @@ message GetTaskByIDResponse {
 
 message GetTaskListRequest {
   int32 task_list_id = 1;
+  int32 pageOffset = 2;
+  int32 pageSize = 3;
 }
 
 message GetTaskListResponse {
@@ -84,18 +86,22 @@ message DeleteTaskResponse {
 
 message CreateTaskListRequest {
   int32 user_id = 1;
-  string name = 2;
+  string title = 2;
+  optional string description = 3;
 }
 
 message CreateTaskListResponse {
   int32 id = 1;
   int32 user_id = 2;
-  string name = 3;
-  google.protobuf.Timestamp created_at = 4;
+  string title = 3;
+  optional string description = 4;
+  google.protobuf.Timestamp created_at = 5;
 }
 
 message GetTaskListsByUserIDRequest {
   int32 user_id = 1;
+  int32 pageOffset = 2;
+  int32 pageSize = 3;
 }
 
 message GetTaskListsByUserIDResponse {
@@ -123,7 +129,6 @@ message TaskList {
   int32 user_id = 2;
   string title = 3;
   optional string description = 4;
-  string name = 5;
   google.protobuf.Timestamp created_at = 6;
 }
 

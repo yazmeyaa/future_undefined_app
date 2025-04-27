@@ -82,8 +82,8 @@ func (t TaskListHandler) GetTaskByID(ctx context.Context, request *grpcTaskList.
 
 func (t TaskListHandler) GetListOfTasks(ctx context.Context, request *grpcTaskList.GetTaskListRequest) (*grpcTaskList.GetTaskListResponse, error) {
 	tasks, err := t.svc.GetTasksByTaskListID(ctx, request.TaskListId, service.GetTasksOptions{
-		Limit:  10,
-		Offset: 0,
+		Limit:  request.PageSize,
+		Offset: request.PageOffset,
 	})
 	if err != nil {
 		t.logger.Error("get tasks error", err)
@@ -150,28 +150,98 @@ func (t TaskListHandler) UpdateTask(ctx context.Context, request *grpcTaskList.U
 }
 
 func (t TaskListHandler) DeleteTask(ctx context.Context, request *grpcTaskList.DeleteTaskRequest) (*grpcTaskList.DeleteTaskResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	err := t.svc.DeleteTask(ctx, request.Id)
+	if err != nil {
+		t.logger.Error("delete task error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+	return &grpcTaskList.DeleteTaskResponse{
+		Success: true,
+	}, nil
 }
 
 func (t TaskListHandler) CreateTaskList(ctx context.Context, request *grpcTaskList.CreateTaskListRequest) (*grpcTaskList.CreateTaskListResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	taskListID, err := t.svc.CreateTaskList(ctx, service.CreateTaskListOptions{
+		UserID:      request.UserId,
+		Title:       request.Title,
+		Description: request.Description,
+	})
+	if err != nil {
+		t.logger.Error("create task list error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+	task, err := t.svc.GetTaskListByID(ctx, taskListID)
+
+	if err != nil {
+		t.logger.Error("get task list error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+
+	response := &grpcTaskList.CreateTaskListResponse{
+		Id:          task.ID,
+		UserId:      task.UserID,
+		Title:       task.Title,
+		Description: task.Description,
+		CreatedAt:   timestamppb.New(task.CreatedAt),
+	}
+
+	return response, nil
 }
 
 func (t TaskListHandler) GetTaskListsByUserID(ctx context.Context, request *grpcTaskList.GetTaskListsByUserIDRequest) (*grpcTaskList.GetTaskListsByUserIDResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	tls, err := t.svc.GetTaskListsByUserID(ctx, request.UserId, service.GetTaskListsOptions{
+		Limit:  request.PageSize,
+		Offset: request.PageOffset,
+	})
+	if err != nil {
+		t.logger.Error("get task lists by user id error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+
+	response := &grpcTaskList.GetTaskListsByUserIDResponse{
+		TaskLists: make([]*grpcTaskList.TaskList, len(tls)),
+	}
+	for i, tl := range tls {
+		response.TaskLists[i] = &grpcTaskList.TaskList{
+			Id:          tl.ID,
+			UserId:      tl.UserID,
+			Title:       tl.Title,
+			Description: tl.Description,
+			CreatedAt:   timestamppb.New(tl.CreatedAt),
+		}
+	}
+
+	return response, nil
 }
 
 func (t TaskListHandler) GetTaskListByID(ctx context.Context, request *grpcTaskList.GetTaskListByIDRequest) (*grpcTaskList.GetTaskListByIDResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	tl, err := t.svc.GetTaskListByID(ctx, request.Id)
+	if err != nil {
+		t.logger.Error("get task list by id error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+	response := &grpcTaskList.GetTaskListByIDResponse{
+		TaskList: &grpcTaskList.TaskList{
+			Id:          tl.ID,
+			UserId:      tl.UserID,
+			Title:       tl.Title,
+			Description: tl.Description,
+			CreatedAt:   timestamppb.New(tl.CreatedAt),
+		},
+	}
+
+	return response, nil
 }
 
 func (t TaskListHandler) DeleteTaskList(ctx context.Context, request *grpcTaskList.DeleteTaskListRequest) (*grpcTaskList.DeleteTaskListResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	err := t.svc.DeleteTaskList(ctx, request.Id)
+	if err != nil {
+		t.logger.Error("delete task list error", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+	return &grpcTaskList.DeleteTaskListResponse{
+		Success: true,
+	}, nil
 }
 
 func NewGRPCHandler(taskListService *service.TaskListService, logger *slog.Logger) *TaskListHandler {

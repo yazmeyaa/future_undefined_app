@@ -71,6 +71,8 @@ paths:
 
   /tasks/task_list/{task_list_id}/get_tasks:
     parameters:
+      - $ref: "#/components/parameters/limitParam"
+      - $ref: "#/components/parameters/offsetParam"
       - name: 'task_list_id'
         in: path
         schema:
@@ -215,6 +217,26 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Project"
+
+  parameters:
+    offsetParam:
+      name: pageOffset
+      in: query
+      schema:
+        type: integer
+        nullable: true
+        default: 0
+
+    limitParam:
+      in: query
+      name: pageSize
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+      description: The numbers of items to return.
 
 
   schemas:

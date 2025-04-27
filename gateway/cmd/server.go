@@ -5,6 +5,7 @@ import (
 	grpcTaskList "github.com/yazmeyaa/future_undefined_app/api/proto/task_list"
 	internalApi "github.com/yazmeyaa/future_undefined_app/gateway/internal/api"
 	api "github.com/yazmeyaa/future_undefined_app/gateway/internal/api/gen"
+	"github.com/yazmeyaa/future_undefined_app/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -32,9 +33,10 @@ func newTaskListClient() grpcTaskList.TaskListServiceClient {
 }
 
 func main() {
+	svcLog := logger.NewLogger("http_gateway")
 	grpcProjClient := newProjectsClient()
 	taskListClient := newTaskListClient()
-	h := internalApi.NewHandler(grpcProjClient, taskListClient)
+	h := internalApi.NewHandler(svcLog, grpcProjClient, taskListClient)
 	x := api.Handler(h)
 	if err := http.ListenAndServe(":8080", x); err != nil {
 		log.Fatalf("failed to serve: %v", err)

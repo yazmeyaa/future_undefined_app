@@ -69,6 +69,12 @@ type TaskList struct {
 	UserID      int     `json:"userID"`
 }
 
+// LimitParam defines model for limitParam.
+type LimitParam = int
+
+// OffsetParam defines model for offsetParam.
+type OffsetParam = int
+
 // ListOfProjectsResponse defines model for ListOfProjectsResponse.
 type ListOfProjectsResponse = []Project
 
@@ -94,6 +100,13 @@ type CreateTaskListJSONBody struct {
 	Description *string `json:"description,omitempty"`
 	Title       string  `json:"title"`
 	UserId      int     `json:"userId"`
+}
+
+// GetTasksByTaskListIDParams defines parameters for GetTasksByTaskListID.
+type GetTasksByTaskListIDParams struct {
+	// Limit The numbers of items to return.
+	Limit      *LimitParam  `form:"limit,omitempty" json:"limit,omitempty"`
+	PageOffset *OffsetParam `form:"pageOffset,omitempty" json:"pageOffset,omitempty"`
 }
 
 // CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
@@ -133,7 +146,7 @@ type ServerInterface interface {
 	UpdateTaskListByID(w http.ResponseWriter, r *http.Request, taskListId int)
 
 	// (GET /tasks/task_list/{task_list_id}/get_tasks)
-	GetTasksByTaskListID(w http.ResponseWriter, r *http.Request, taskListId int)
+	GetTasksByTaskListID(w http.ResponseWriter, r *http.Request, taskListId int, params GetTasksByTaskListIDParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -372,8 +385,27 @@ func (siw *ServerInterfaceWrapper) GetTasksByTaskListID(w http.ResponseWriter, r
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTasksByTaskListIDParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pageOffset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageOffset", r.URL.Query(), &params.PageOffset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pageOffset", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTasksByTaskListID(w, r, taskListId)
+		siw.Handler.GetTasksByTaskListID(w, r, taskListId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -520,22 +552,24 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"/5OHllP4EgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
